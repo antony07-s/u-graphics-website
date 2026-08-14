@@ -3,31 +3,39 @@ import Button from "@/components/ui/Button";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
 import StatsCounter from "@/components/ui/StatsCounter";
+import HeroSlider from "@/components/home/HeroSlider";
+
+// TEMPORARY placeholder photos — replace with your own signage/web project
+// photos once available (via Cloudinary once the admin panel is built, or
+// by dropping images into /public/hero and updating the paths below).
+const heroSlides = [
+  {
+    image:
+      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=1600&q=80",
+    title: "Signage That Gets You Noticed",
+    subtitle:
+      "3D LED signboards, acrylic signage, lightboxes and vehicle branding — built to last.",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&q=80",
+    title: "Websites Built to Convert",
+    subtitle:
+      "Fast, modern business websites that turn visitors into customers.",
+  },
+  {
+    image:
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&q=80",
+    title: "One Team, End to End",
+    subtitle: "From design and fabrication to installation and support.",
+  },
+];
 
 export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary to-primary-dark py-24 text-white">
-        <div className="container-page text-center">
-          <h1 className="font-heading text-4xl font-bold sm:text-5xl">
-            Signage & Web Design,{" "}
-            <span className="text-accent">Built to Get You Noticed</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-white/80">
-            U Graphics helps businesses across India stand out — from 3D LED
-            signboards and vehicle branding to modern, high-converting websites.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Button href="/get-a-quote" variant="primary" size="lg">
-              Get a Free Quote
-            </Button>
-            <Button href="/portfolio" variant="outlineLight" size="lg">
-              View Our Work
-            </Button>
-          </div>
-        </div>
-      </section>
+      <HeroSlider slides={heroSlides} />
 
       {/* Services overview */}
       <section className="section">
