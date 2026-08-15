@@ -2,21 +2,29 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Enquiry from "@/models/Enquiry";
 import nodemailer from "nodemailer";
+import { z } from "zod";
+
+const enquirySchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  phone: z.string().trim().regex(/^[0-9+()\-\s]{7,20}$/),
+  email: z.string().trim().email().optional().or(z.literal("")),
+  serviceCategory: z.string().trim().max(120).optional(),
+  message: z.string().trim().max(2000).optional(),
+  attachmentUrl: z.string().url().optional(),
+});
 
 // POST /api/enquiry -> save enquiry + send email notification
 export async function POST(request) {
   try {
     await connectDB();
-    const body = await request.json();
-
-    const { name, phone, email, serviceCategory, message, attachmentUrl } = body;
-
-    if (!name || !phone) {
+    const parsed = enquirySchema.safeParse(await request.json());
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Name and phone are required." },
+        { error: "Please provide a valid name, phone number and optional contact details." },
         { status: 400 }
       );
     }
+    const { name, phone, email, serviceCategory, message, attachmentUrl } = parsed.data;
 
     const enquiry = await Enquiry.create({
       name,
@@ -28,7 +36,7 @@ export async function POST(request) {
     });
 
     // Send email notification (non-blocking failure — enquiry is already saved)
-    try {
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.ENQUIRY_RECEIVER_EMAIL) try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT),

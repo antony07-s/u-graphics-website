@@ -64,14 +64,14 @@ export default function HeroSlider({ slides = [], interval = 6000 }) {
           key={i}
           className={`absolute inset-0 transition-opacity duration-700 ${
             i === index ? "opacity-100" : "pointer-events-none opacity-0"
-          }`}
+          } ${slide.fit === "contain" ? "bg-[#0b0f1a]" : ""}`}
         >
           <Image
             src={slide.image}
             alt={slide.title || `Slide ${i + 1}`}
             fill
             priority={i === 0}
-            className="object-cover"
+            className={slide.fit === "contain" ? "object-contain" : "object-cover"}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           {(slide.title || slide.subtitle) && (

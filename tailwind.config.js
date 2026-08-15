@@ -27,8 +27,8 @@ module.exports = {
         danger: "#D32F2F",
       },
       fontFamily: {
-        heading: ["var(--font-poppins)", "sans-serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        heading: ["Arial", "Helvetica", "sans-serif"],
+        body: ["Arial", "Helvetica", "sans-serif"],
       },
       borderRadius: {
         card: "12px",

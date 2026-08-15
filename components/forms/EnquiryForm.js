@@ -26,7 +26,7 @@ export default function EnquiryForm({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({ mode: "onBlur" });
   const [status, setStatus] = useState("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -73,15 +73,15 @@ export default function EnquiryForm({
           id="name"
           label="Full Name *"
           placeholder="Your name"
-          error={errors.name && "Name is required"}
-          {...register("name", { required: true })}
+          error={errors.name?.message}
+          {...register("name", { required: "Name is required", minLength: { value: 2, message: "Enter at least 2 characters" } })}
         />
         <FormInput
           id="phone"
           label="Phone Number *"
           placeholder="e.g. 9876543210"
-          error={errors.phone && "Phone number is required"}
-          {...register("phone", { required: true })}
+          error={errors.phone?.message}
+          {...register("phone", { required: "Phone number is required", pattern: { value: /^[0-9+()\-\s]{7,20}$/, message: "Enter a valid phone number" } })}
         />
       </div>
 
@@ -90,7 +90,8 @@ export default function EnquiryForm({
         type="email"
         label="Email Address"
         placeholder="you@example.com"
-        {...register("email")}
+        error={errors.email?.message}
+        {...register("email", { pattern: { value: /^\S+@\S+\.\S+$/, message: "Enter a valid email address" } })}
       />
 
       <FormSelect
@@ -104,7 +105,8 @@ export default function EnquiryForm({
         id="message"
         label="Message"
         placeholder="Tell us a bit about what you need..."
-        {...register("message")}
+        error={errors.message?.message}
+        {...register("message", { maxLength: { value: 2000, message: "Message must be under 2,000 characters" } })}
       />
 
       {status === "error" && (

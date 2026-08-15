@@ -6,7 +6,7 @@ const CategorySchema = new mongoose.Schema(
     slug: { type: String, required: true, unique: true },
     group: {
       type: String,
-      enum: ["signage", "web-design"],
+      enum: ["signage", "web-design", "signboards", "digital-printing"],
       required: true,
     },
     description: { type: String },

@@ -1,14 +1,14 @@
 "use client";
 
 import { MessageCircle } from "lucide-react";
+import { whatsappUrl } from "@/lib/siteConfig";
+import { useSiteSettings } from "@/components/providers/useSiteSettings";
 
 export default function WhatsAppButton() {
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "91XXXXXXXXXX";
-  const message = encodeURIComponent("Hi, I'm interested in your services.");
-
+  const settings = useSiteSettings();
   return (
     <a
-      href={`https://wa.me/${number}?text=${message}`}
+      href={settings.whatsapp ? `https://wa.me/${settings.whatsapp}?text=${encodeURIComponent("Hi, I'm interested in U Graphics services.")}` : whatsappUrl()}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"

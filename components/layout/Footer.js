@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { Facebook, Instagram, Youtube, MapPin, Mail, Phone } from "lucide-react";
+import { MapPin, Mail, Phone, MessageCircle } from "lucide-react";
+import { siteConfig } from "@/lib/siteConfig";
+import { getSiteSettings } from "@/lib/siteSettings";
 
-export default function Footer() {
+export default async function Footer() {
+  const settings = await getSiteSettings();
   return (
     <footer className="bg-primary-dark bg-[#082C6B] text-white">
       <div className="container-page grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -14,17 +17,8 @@ export default function Footer() {
             Signboards, advertising & web design — helping businesses across
             India build a stronger visual presence, online and offline.
           </p>
-          <div className="mt-4 flex gap-3">
-            <a href="#" aria-label="Facebook" className="rounded-full bg-white/10 p-2 hover:bg-accent">
-              <Facebook size={16} />
-            </a>
-            <a href="#" aria-label="Instagram" className="rounded-full bg-white/10 p-2 hover:bg-accent">
-              <Instagram size={16} />
-            </a>
-            <a href="#" aria-label="YouTube" className="rounded-full bg-white/10 p-2 hover:bg-accent">
-              <Youtube size={16} />
-            </a>
-          </div>
+          <a href={`https://wa.me/${settings.whatsapp || siteConfig.whatsapp}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-accent"><MessageCircle size={17} /> WhatsApp U Graphics</a>
+          {Object.entries(settings.socialLinks || {}).filter(([, url]) => url).length > 0 && <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm">{Object.entries(settings.socialLinks).filter(([, url]) => url).map(([platform, url]) => <a key={platform} href={url} target="_blank" rel="noopener noreferrer" className="capitalize text-white/70 hover:text-accent">{platform}</a>)}</div>}
         </div>
 
         <div>
@@ -53,13 +47,17 @@ export default function Footer() {
           <ul className="mt-3 space-y-3 text-sm text-white/70">
             <li className="flex items-start gap-2">
               <MapPin size={16} className="mt-0.5 shrink-0" />
-              <span>Your Address, City, State, India - PIN</span>
+              <span>{settings.indiaAddress}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <MapPin size={16} className="mt-0.5 shrink-0" />
+              <span>{settings.malaysiaAddress}</span>
             </li>
             <li className="flex items-center gap-2">
-              <Phone size={16} /> <span>+91 XXXXX XXXXX</span>
+              <Phone size={16} /> <a href={`tel:${settings.malaysiaPhone}`} className="hover:text-accent">{settings.malaysiaPhone}</a>
             </li>
             <li className="flex items-center gap-2">
-              <Mail size={16} /> <span>info@ugraphics.in</span>
+              <Mail size={16} /> <a href={`mailto:${settings.email}`} className="hover:text-accent">{settings.email}</a>
             </li>
           </ul>
         </div>

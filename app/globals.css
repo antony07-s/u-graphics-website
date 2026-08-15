@@ -15,6 +15,7 @@ html {
 body {
   color: var(--color-ink);
   background-color: #ffffff;
+  overflow-x: hidden;
 }
 
 /* Respect reduced motion preference */

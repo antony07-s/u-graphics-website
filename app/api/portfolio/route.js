@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Project from "@/models/Project";
 import Category from "@/models/Category";
@@ -24,6 +26,11 @@ export async function GET(request) {
 
 // POST /api/portfolio -> create a new project (admin only)
 export async function POST(request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !["admin", "editor"].includes(session.user.role)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   await connectDB();
   const body = await request.json();
 
