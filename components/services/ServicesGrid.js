@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import CategoryFilterTabs from "@/components/ui/CategoryFilterTabs";
 import EmptyState from "@/components/ui/EmptyState";
@@ -10,14 +11,13 @@ import EmptyState from "@/components/ui/EmptyState";
  * services: [{ _id, title, slug, image, shortDescription, category: { _id, slug, name } }]
  */
 export default function ServicesGrid({ categories = [], services = [] }) {
-  const [activeGroup, setActiveGroup] = useState("all");
+  const searchParams = useSearchParams();
+  const requestedGroup = searchParams.get("group");
+  const initialGroup = requestedGroup === "signage" || requestedGroup === "web-design" ? requestedGroup : "all";
+  const [activeGroup, setActiveGroup] = useState(initialGroup);
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const groupTabs = [
-    { label: "All", value: "all" },
-    { label: "Signage", value: "signage" },
-    { label: "Web Design", value: "web-design" },
-  ];
+  const groupTabs = [{ label: "All", value: "all" }, { label: "Web Design", value: "web-design" }];
 
   const visibleCategories = useMemo(
     () =>

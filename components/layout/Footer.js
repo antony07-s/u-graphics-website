@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { MapPin, Mail, Phone, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
 import { getSiteSettings } from "@/lib/siteSettings";
+import LocationToggle from "@/components/layout/LocationToggle";
 
 export default async function Footer() {
   const settings = await getSiteSettings();
@@ -35,40 +36,34 @@ export default async function Footer() {
         <div>
           <h4 className="font-heading font-semibold">Our Services</h4>
           <ul className="mt-3 space-y-2 text-sm text-white/70">
-            <li><Link href="/services#signage" className="hover:text-accent">Signage & Advertising</Link></li>
-            <li><Link href="/services#web-design" className="hover:text-accent">Web Design & Digital</Link></li>
+            <li><Link href="/signboards" className="hover:text-accent">Signboards</Link></li>
+            <li><Link href="/digital-printing" className="hover:text-accent">Digital Printing</Link></li>
+            <li><Link href="/services?group=web-design#web-design" className="hover:text-accent">Web Design & Digital</Link></li>
             <li><Link href="/portfolio" className="hover:text-accent">Our Projects</Link></li>
-            <li><Link href="/careers" className="hover:text-accent">Careers</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-heading font-semibold">Contact</h4>
-          <ul className="mt-3 space-y-3 text-sm text-white/70">
-            <li className="flex items-start gap-2">
-              <MapPin size={16} className="mt-0.5 shrink-0" />
-              <span>{settings.indiaAddress}</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <MapPin size={16} className="mt-0.5 shrink-0" />
-              <span>{settings.malaysiaAddress}</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Phone size={16} /> <a href={`tel:${settings.malaysiaPhone}`} className="hover:text-accent">{settings.malaysiaPhone}</a>
-            </li>
-            <li className="flex items-center gap-2">
-              <Mail size={16} /> <a href={`mailto:${settings.email}`} className="hover:text-accent">{settings.email}</a>
-            </li>
-          </ul>
+          <LocationToggle
+            indiaAddress={settings.indiaAddress}
+            malaysiaAddress={settings.malaysiaAddress}
+            malaysiaPhone={settings.malaysiaPhone}
+            indiaPhone={
+              settings.indiaPhone ||
+              `+${(settings.whatsapp || siteConfig.whatsapp).replace(/^0+/, "")}`
+            }
+          />
+          <div className="mt-3 flex items-center gap-2 text-sm text-white/70">
+            <Mail size={16} /> <a href={`mailto:${settings.email}`} className="hover:text-accent">{settings.email}</a>
+          </div>
         </div>
       </div>
 
       <div className="border-t border-white/10 py-5">
         <div className="container-page flex flex-col items-center justify-between gap-2 text-xs text-white/60 sm:flex-row">
           <p>© {new Date().getFullYear()} U Graphics. All rights reserved.</p>
-          <Link href="/privacy-policy" className="hover:text-accent">
-            Privacy Policy
-          </Link>
+          <Link href="/contact" className="hover:text-accent">Contact U Graphics</Link>
         </div>
       </div>
     </footer>

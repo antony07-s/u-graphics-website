@@ -13,6 +13,9 @@ const ProjectSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Service",
     },
+    // Stable public-service link. This also supports the built-in catalog
+    // services before they have individual MongoDB Service documents.
+    serviceSlug: { type: String, trim: true, index: true },
     coverImage: { type: String, required: true },
     gallery: [{ type: String }],
     description: { type: String },

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Enquiry from "@/models/Enquiry";
 import nodemailer from "nodemailer";
@@ -12,6 +14,17 @@ const enquirySchema = z.object({
   message: z.string().trim().max(2000).optional(),
   attachmentUrl: z.string().url().optional(),
 });
+
+// GET /api/enquiry -> list all enquiries, newest first (admin/editor only)
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || !["admin", "editor"].includes(session.user.role)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  await connectDB();
+  const enquiries = await Enquiry.find({}).sort({ createdAt: -1 });
+  return NextResponse.json({ enquiries });
+}
 
 // POST /api/enquiry -> save enquiry + send email notification
 export async function POST(request) {
