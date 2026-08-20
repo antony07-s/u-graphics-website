@@ -14,6 +14,12 @@ const EnquirySchema = new mongoose.Schema(
       default: "new",
     },
     source: { type: String, default: "website" }, // website, whatsapp, etc.
+    emailStatus: {
+      type: String,
+      enum: ["not-configured", "sent", "failed"],
+      default: "not-configured",
+    },
+    emailSentAt: { type: Date },
   },
   { timestamps: true }
 );

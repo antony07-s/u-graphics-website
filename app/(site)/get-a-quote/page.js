@@ -1,7 +1,10 @@
 import { Clock, ShieldCheck, Wallet } from "lucide-react";
 import PageHero from "@/components/ui/PageHero";
 import EnquiryForm from "@/components/forms/EnquiryForm";
-import { siteConfig, whatsappUrl } from "@/lib/siteConfig";
+import { siteConfig } from "@/lib/siteConfig";
+import { getSiteSettings } from "@/lib/siteSettings";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Get a Free Quote",
@@ -27,7 +30,8 @@ const reasons = [
   },
 ];
 
-export default function GetAQuotePage() {
+export default async function GetAQuotePage() {
+  const settings = await getSiteSettings();
   return (
     <>
       <PageHero
@@ -69,11 +73,11 @@ export default function GetAQuotePage() {
                 options right away.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href={`tel:${siteConfig.malaysiaPhone}`} className="btn-outline text-sm">
+                <a href={`tel:${settings.malaysiaPhone || siteConfig.malaysiaPhone}`} className="btn-outline text-sm">
                   Call Us
                 </a>
                 <a
-                  href={whatsappUrl()}
+                  href={`https://wa.me/${settings.whatsapp || siteConfig.whatsapp}?text=${encodeURIComponent("Hi, I'm interested in U Graphics services.")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="btn-primary text-sm"

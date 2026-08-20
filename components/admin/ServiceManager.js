@@ -10,6 +10,8 @@ const empty = {
   shortDescription: "",
   description: "",
   image: "/images/hero/heroslider1.jpeg",
+  gallery: [],
+  isFeatured: false,
   order: 0,
 };
 
@@ -20,11 +22,15 @@ export default function ServiceManager() {
   const [status, setStatus] = useState("");
 
   const load = () =>
-    fetch("/api/services")
-      .then((r) => r.json())
-      .then((data) =>
-        setServices(data.services.filter((item) => item.catalogGroup))
-      )
+    Promise.all([
+      fetch("/api/services?catalogGroup=signboards&includeCatalogDefaults=true"),
+      fetch("/api/services?catalogGroup=digital-printing&includeCatalogDefaults=true"),
+    ])
+      .then(async (responses) => {
+        if (responses.some((response) => !response.ok)) throw new Error();
+        const data = await Promise.all(responses.map((response) => response.json()));
+        setServices(data.flatMap((group) => group.services));
+      })
       .catch(() => setStatus("Unable to load services."));
 
   useEffect(() => {
@@ -47,7 +53,7 @@ export default function ServiceManager() {
     const response = await fetch(url, {
       method: editing ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, _id: undefined, isCatalogDefault: undefined }),
     });
     if (!response.ok) {
       setStatus("Unable to save. Check the details and sign-in permissions.");
@@ -60,13 +66,17 @@ export default function ServiceManager() {
   };
 
   const edit = (service) => {
-    setEditing(service._id);
+    // Default catalogue entries are created in the database the first time
+    // they are saved, preserving their existing slug and project links.
+    setEditing(service._id || null);
     setForm({ ...empty, ...service });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const remove = async (service) => {
-    if (!window.confirm(`Delete ${service.title}?`)) return;
+    if (!service._id) return;
+    const action = service.isCatalogDefault ? "Reset this service to its catalogue default" : `Delete ${service.title}`;
+    if (!window.confirm(`${action}?`)) return;
     const response = await fetch(`/api/services/${service._id}`, {
       method: "DELETE",
     });
@@ -160,6 +170,25 @@ export default function ServiceManager() {
           />
         </label>
 
+        <label className="text-sm font-medium sm:col-span-2">
+          Gallery image URLs (one per line)
+          <textarea
+            value={(form.gallery || []).join("\n")}
+            onChange={(event) => setForm({ ...form, gallery: event.target.value.split("\n").map((url) => url.trim()).filter(Boolean) })}
+            rows="3"
+            className="mt-1 w-full rounded-card border border-ink/15 px-3 py-2"
+          />
+        </label>
+
+        <label className="flex items-center gap-2 text-sm font-medium sm:col-span-2">
+          <input
+            type="checkbox"
+            checked={Boolean(form.isFeatured)}
+            onChange={(event) => setForm({ ...form, isFeatured: event.target.checked })}
+          />
+          Feature this service
+        </label>
+
         <div className="flex gap-3 sm:col-span-2">
           <button className="btn-primary" type="submit">
             {editing ? "Save changes" : "Add service"}
@@ -201,14 +230,11 @@ export default function ServiceManager() {
                     className="mr-3 text-primary"
                     onClick={() => edit(service)}
                   >
-                    Edit
+                    {service._id ? "Edit" : "Customize"}
                   </button>
-                  <button
-                    className="text-danger"
-                    onClick={() => remove(service)}
-                  >
-                    Delete
-                  </button>
+                  {service._id && <button className="text-danger" onClick={() => remove(service)}>
+                    {service.isCatalogDefault ? "Reset" : "Delete"}
+                  </button>}
                 </td>
               </tr>
             ))}

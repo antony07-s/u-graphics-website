@@ -1,7 +1,10 @@
 import { MapPin, Mail, Phone, MessageCircle } from "lucide-react";
 import PageHero from "@/components/ui/PageHero";
 import EnquiryForm from "@/components/forms/EnquiryForm";
-import { siteConfig, whatsappUrl } from "@/lib/siteConfig";
+import { siteConfig } from "@/lib/siteConfig";
+import { getSiteSettings } from "@/lib/siteSettings";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Contact Us",
@@ -9,38 +12,41 @@ export const metadata = {
     "Get in touch with U Graphics for signage and web design enquiries. Call, WhatsApp, or send us a message.",
 };
 
-const contactDetails = [
+function contactDetails(settings) {
+  return [
   {
     icon: MapPin,
     label: "Address",
-    value: siteConfig.indiaAddress,
+    value: settings.indiaAddress,
   },
   {
     icon: MapPin,
     label: "Malaysia Office",
-    value: siteConfig.malaysiaAddress,
+    value: settings.malaysiaAddress,
   },
   {
     icon: Phone,
     label: "Phone",
-    value: siteConfig.malaysiaPhone,
-    href: `tel:${siteConfig.malaysiaPhone}`,
+    value: settings.malaysiaPhone,
+    href: `tel:${settings.malaysiaPhone}`,
   },
   {
     icon: Mail,
     label: "Email",
-    value: siteConfig.email,
-    href: `mailto:${siteConfig.email}`,
+    value: settings.email,
+    href: `mailto:${settings.email}`,
   },
   {
     icon: MessageCircle,
     label: "WhatsApp",
     value: "Chat with us",
-    href: whatsappUrl(),
+    href: `https://wa.me/${settings.whatsapp || siteConfig.whatsapp}`,
   },
-];
+  ];
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
   return (
     <>
       <PageHero
@@ -61,7 +67,7 @@ export default function ContactPage() {
             </p>
 
             <div className="mt-6 flex flex-col gap-5">
-              {contactDetails.map(({ icon: Icon, label, value, href }) => {
+              {contactDetails(settings).map(({ icon: Icon, label, value, href }) => {
                 const content = (
                   <div className="flex items-start gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">

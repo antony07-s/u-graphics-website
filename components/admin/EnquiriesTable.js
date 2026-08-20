@@ -100,6 +100,7 @@ export default function EnquiriesTable({ enquiries }) {
 
           <p className="mt-3 text-xs text-ink/40">
             {formatDate(enquiry.createdAt)}
+            {enquiry.emailStatus && ` · Email: ${enquiry.emailStatus}`}
           </p>
         </div>
       ))}

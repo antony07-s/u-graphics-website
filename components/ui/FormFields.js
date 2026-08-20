@@ -1,15 +1,18 @@
+import { forwardRef } from "react";
+
 /**
  * Consistent styled form fields, meant to be used with react-hook-form.
  * Each accepts `label`, `error`, and standard input props via `register(...)`.
  */
 
-export function FormInput({ label, error, id, ...props }) {
+export const FormInput = forwardRef(function FormInput({ label, error, id, ...props }, ref) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <input
+        ref={ref}
         id={id}
         className={`rounded-card border px-4 py-2.5 text-sm outline-none transition focus:border-primary ${
           error ? "border-danger" : "border-ink/15"
@@ -19,15 +22,16 @@ export function FormInput({ label, error, id, ...props }) {
       {error && <span className="text-xs text-danger">{error}</span>}
     </div>
   );
-}
+});
 
-export function FormTextarea({ label, error, id, rows = 4, ...props }) {
+export const FormTextarea = forwardRef(function FormTextarea({ label, error, id, rows = 4, ...props }, ref) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <textarea
+        ref={ref}
         id={id}
         rows={rows}
         className={`rounded-card border px-4 py-2.5 text-sm outline-none transition focus:border-primary ${
@@ -38,15 +42,16 @@ export function FormTextarea({ label, error, id, rows = 4, ...props }) {
       {error && <span className="text-xs text-danger">{error}</span>}
     </div>
   );
-}
+});
 
-export function FormSelect({ label, error, id, options = [], ...props }) {
+export const FormSelect = forwardRef(function FormSelect({ label, error, id, options = [], ...props }, ref) {
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <select
+        ref={ref}
         id={id}
         className={`rounded-card border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-primary ${
           error ? "border-danger" : "border-ink/15"
@@ -63,4 +68,4 @@ export function FormSelect({ label, error, id, options = [], ...props }) {
       {error && <span className="text-xs text-danger">{error}</span>}
     </div>
   );
-}
+});

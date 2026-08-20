@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
 import { siteConfig } from "@/lib/siteConfig";
+import { defaultEnquiryRecipient } from "@/lib/enquiryConfig";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,13 @@ export async function GET() {
   try {
     await connectDB();
     const settings = await SiteSettings.findOne({ key: "primary" }).lean();
-    return NextResponse.json({ settings: settings || siteConfig });
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user?.role === "admin";
+    const result = { ...(settings || siteConfig) };
+    // The enquiry inbox is operational data, not public contact information.
+    if (isAdmin) result.enquiryRecipientEmail ||= defaultEnquiryRecipient;
+    else delete result.enquiryRecipientEmail;
+    return NextResponse.json({ settings: result });
   } catch {
     return NextResponse.json({ settings: siteConfig });
   }

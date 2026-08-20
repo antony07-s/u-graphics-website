@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import Service from "@/models/Service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { signboards, digitalPrinting } from "@/lib/serviceCatalog";
 
 // GET /api/services  -> list all services (optionally filter by ?category=slug)
 export async function GET(request) {
@@ -10,6 +11,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const categorySlug = searchParams.get("category");
   const catalogGroup = searchParams.get("catalogGroup");
+  const includeCatalogDefaults = searchParams.get("includeCatalogDefaults") === "true";
 
   const query = {};
   if (categorySlug) {
@@ -23,7 +25,23 @@ export async function GET(request) {
     .populate("category")
     .sort({ order: 1, createdAt: -1 });
 
-  return NextResponse.json({ services });
+  if (!includeCatalogDefaults || !catalogGroup) {
+    return NextResponse.json({ services });
+  }
+
+  const defaults = catalogGroup === "signboards" ? signboards : catalogGroup === "digital-printing" ? digitalPrinting : [];
+  const serialized = JSON.parse(JSON.stringify(services));
+  const bySlug = new Map(serialized.map((service) => [service.slug, service]));
+  const merged = defaults.map((service) => ({
+    ...service,
+    ...(bySlug.get(service.slug) || {}),
+    isCatalogDefault: true,
+  }));
+  const additions = serialized
+    .filter((service) => !defaults.some((item) => item.slug === service.slug))
+    .map((service) => ({ ...service, isCatalogDefault: false }));
+
+  return NextResponse.json({ services: [...merged, ...additions] });
 }
 
 // POST /api/services -> create a new service (admin only — auth check to be added)

@@ -10,7 +10,7 @@ export default function CatalogGrid({ group, items }) {
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-muted"><Image src={item.image} alt={`${item.title} by U Graphics`} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover object-center" /></div><div className="p-5">
       <Icon aria-hidden="true" className="text-primary" size={24} />
       <h2 className="mt-4 font-heading text-base font-semibold text-ink">{item.title}</h2>
-      <p className="mt-2 text-sm text-ink/65">Custom {group.toLowerCase()} planned around your brand, application and finish.</p>
+      <p className="mt-2 text-sm text-ink/65">{item.shortDescription || `Custom ${group.toLowerCase()} planned around your brand, application and finish.`}</p>
       <span className="mt-4 flex items-center gap-1 text-sm font-medium text-primary group-hover:gap-2">Explore service <ArrowRight size={15} /></span></div>
     </Link>)}
   </div>;
