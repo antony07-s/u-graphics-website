@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
 import { signboards, digitalPrinting } from "@/lib/serviceCatalog";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 
 const serviceOptions = [...signboards, ...digitalPrinting];
 
@@ -176,23 +177,12 @@ export default function ProjectForm({ initialData = null, projectId = null }) {
         )}
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-ink">
-          Cover Image URL *
-        </label>
-        <input
-          name="coverImage"
-          required
-          value={form.coverImage}
-          onChange={handleChange}
-          className="w-full rounded-card border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-primary"
-          placeholder="https://..."
-        />
-        <p className="mt-1 text-xs text-ink/50">
-          Paste an image URL for now — direct upload comes once Cloudinary is
-          connected.
-        </p>
-      </div>
+      <ImageUploadField
+        label="Cover Image *"
+        value={form.coverImage}
+        onChange={(url) => setForm((f) => ({ ...f, coverImage: url }))}
+        folder="ugraphics/portfolio"
+      />
 
       <div>
         <label className="mb-1 block text-sm font-medium text-ink">

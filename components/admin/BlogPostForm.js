@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertCircle } from "lucide-react";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 
 export default function BlogPostForm({ initialData = null, postId = null }) {
   const router = useRouter();
@@ -137,18 +138,12 @@ export default function BlogPostForm({ initialData = null, postId = null }) {
         />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm font-medium text-ink">
-          Cover Image URL
-        </label>
-        <input
-          name="coverImage"
-          value={form.coverImage}
-          onChange={handleChange}
-          className="w-full rounded-card border border-black/10 px-4 py-2.5 text-sm outline-none focus:border-primary"
-          placeholder="https://..."
-        />
-      </div>
+      <ImageUploadField
+        label="Cover Image"
+        value={form.coverImage}
+        onChange={(url) => setForm((f) => ({ ...f, coverImage: url }))}
+        folder="ugraphics/blog"
+      />
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
