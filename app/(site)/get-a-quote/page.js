@@ -73,7 +73,7 @@ export default async function GetAQuotePage() {
                 options right away.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <a href={`tel:${settings.malaysiaPhone || siteConfig.malaysiaPhone}`} className="btn-outline text-sm">
+                <a href={`tel:${settings.indiaPhone || siteConfig.indiaPhone}`} className="btn-outline text-sm">
                   Call Us
                 </a>
                 <a

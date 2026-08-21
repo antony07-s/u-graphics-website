@@ -100,7 +100,7 @@ export default function Header() {
         {/* Desktop CTA */}
         <div className="hidden items-center gap-3 lg:flex">
           <a
-            href={`tel:${settings.malaysiaPhone || siteConfig.malaysiaPhone}`}
+            href={`tel:${settings.indiaPhone || siteConfig.indiaPhone}`}
             className="flex items-center gap-2 text-sm font-medium text-primary"
           >
             <Phone size={16} /> Call Us

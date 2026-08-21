@@ -10,7 +10,7 @@ export default function MobileActionBar() {
   return (
     <div className="fixed bottom-0 left-0 z-40 flex w-full items-stretch bg-primary text-white shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:hidden">
       <a
-        href={`tel:${settings.malaysiaPhone || siteConfig.malaysiaPhone}`}
+       href={`tel:${settings.indiaPhone || siteConfig.indiaPhone}`}
         className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium"
       >
         <Phone size={18} />

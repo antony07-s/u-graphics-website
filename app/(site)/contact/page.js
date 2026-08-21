@@ -14,34 +14,34 @@ export const metadata = {
 
 function contactDetails(settings) {
   return [
-  {
-    icon: MapPin,
-    label: "Address",
-    value: settings.indiaAddress,
-  },
-  {
-    icon: MapPin,
-    label: "Malaysia Office",
-    value: settings.malaysiaAddress,
-  },
-  {
-    icon: Phone,
-    label: "Phone",
-    value: settings.malaysiaPhone,
-    href: `tel:${settings.malaysiaPhone}`,
-  },
-  {
-    icon: Mail,
-    label: "Email",
-    value: settings.email,
-    href: `mailto:${settings.email}`,
-  },
-  {
-    icon: MessageCircle,
-    label: "WhatsApp",
-    value: "Chat with us",
-    href: `https://wa.me/${settings.whatsapp || siteConfig.whatsapp}`,
-  },
+    {
+      icon: MapPin,
+      label: "Address",
+      value: settings.indiaAddress,
+    },
+    {
+      icon: MapPin,
+      label: "Malaysia Office",
+      value: settings.malaysiaAddress,
+    },
+    {
+      icon: Phone,
+      label: "Phone",
+      value: settings.indiaPhone || siteConfig.indiaPhone,
+      href: `tel:${settings.indiaPhone || siteConfig.indiaPhone}`,
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      value: settings.email,
+      href: `mailto:${settings.email}`,
+    },
+    {
+      icon: MessageCircle,
+      label: "WhatsApp",
+      value: "Chat with us",
+      href: `https://wa.me/${settings.whatsapp || siteConfig.whatsapp}`,
+    },
   ];
 }
 

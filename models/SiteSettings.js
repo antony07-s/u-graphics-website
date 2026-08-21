@@ -8,6 +8,7 @@ const SiteSettingsSchema = new mongoose.Schema({
   // to public site-settings consumers.
   enquiryRecipientEmail: { type: String, required: true, default: defaultEnquiryRecipient },
   indiaAddress: { type: String, required: true },
+  indiaPhone: { type: String },
   malaysiaAddress: { type: String, required: true },
   malaysiaPhone: { type: String, required: true },
   whatsapp: { type: String, required: true },

@@ -1,25 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, animate } from "framer-motion";
 
 function Counter({ to, suffix = "" }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-50px" });
   const [value, setValue] = useState(0);
 
   useEffect(() => {
-    if (!inView) return;
     const controls = animate(0, to, {
       duration: 1.6,
       ease: "easeOut",
       onUpdate: (v) => setValue(Math.floor(v)),
     });
     return () => controls.stop();
-  }, [inView, to]);
+  }, [to]);
 
   return (
-    <span ref={ref} className="font-heading text-4xl font-bold text-primary sm:text-5xl">
+    <span className="font-heading text-4xl font-bold text-primary sm:text-5xl">
       {value}
       {suffix}
     </span>

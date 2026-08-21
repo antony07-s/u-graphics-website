@@ -57,17 +57,17 @@ export async function POST(request) {
       attachmentUrl,
     });
 
-    // Send email notification (non-blocking failure — enquiry is already saved)
+    // Send email notifications (non-blocking failure — enquiry is already saved)
     // Delivery failure never discards the database record.
     const settings = await SiteSettings.findOne({ key: "primary" }).lean();
     const recipient = settings?.enquiryRecipientEmail || defaultEnquiryRecipient;
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && recipient) try {
-      const transporter = nodemailer.createTransport({
+
+    let transporter = null;
+    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT || 587),
         secure: Number(process.env.SMTP_PORT) === 465,
-        // Keep certificate verification enabled unless a self-hosted SMTP
-        // service explicitly requires the deployment setting to disable it.
         tls: process.env.SMTP_TLS_REJECT_UNAUTHORIZED === "false"
           ? { rejectUnauthorized: false }
           : undefined,
@@ -76,27 +76,69 @@ export async function POST(request) {
           pass: process.env.SMTP_PASS,
         },
       });
+    }
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: recipient,
-        subject: `New Enquiry from ${name} - U Graphics`,
-        html: `
-          <h2>New Website Enquiry</h2>
-          <p><b>Name:</b> ${escapeHtml(name)}</p>
-          <p><b>Phone:</b> ${escapeHtml(phone)}</p>
-          <p><b>Email:</b> ${escapeHtml(email)}</p>
-          <p><b>Service:</b> ${escapeHtml(serviceCategory)}</p>
-          <p><b>Message:</b> ${escapeHtml(message)}</p>
-        `,
-      });
-      await Enquiry.findByIdAndUpdate(enquiry._id, {
-        emailStatus: "sent",
-        emailSentAt: new Date(),
-      });
-    } catch (emailError) {
-      console.error("Email notification failed:", emailError);
-      await Enquiry.findByIdAndUpdate(enquiry._id, { emailStatus: "failed" });
+    // 1. Notify the U Graphics team of the new enquiry.
+    if (transporter && recipient) {
+      try {
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: recipient,
+          subject: `New Enquiry from ${name} - U Graphics`,
+          html: `
+            <h2>New Website Enquiry</h2>
+            <p><b>Name:</b> ${escapeHtml(name)}</p>
+            <p><b>Phone:</b> ${escapeHtml(phone)}</p>
+            <p><b>Email:</b> ${escapeHtml(email)}</p>
+            <p><b>Service:</b> ${escapeHtml(serviceCategory)}</p>
+            <p><b>Message:</b> ${escapeHtml(message)}</p>
+          `,
+        });
+        await Enquiry.findByIdAndUpdate(enquiry._id, {
+          emailStatus: "sent",
+          emailSentAt: new Date(),
+        });
+      } catch (emailError) {
+        console.error("Email notification failed:", emailError);
+        await Enquiry.findByIdAndUpdate(enquiry._id, { emailStatus: "failed" });
+      }
+    }
+
+    // 2. Send a thank-you confirmation to the person who submitted the form,
+    // only if they gave an email. Kept fully independent of the admin
+    // notification above — one failing never affects the other.
+    if (transporter && email) {
+      try {
+        const whatsapp = settings?.whatsapp;
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || process.env.SMTP_USER,
+          to: email,
+          subject: "Thanks for reaching out to U Graphics",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+              <h2 style="color:#0b3d91;">Thanks, ${escapeHtml(name)}!</h2>
+              <p>We've received your enquiry${
+                serviceCategory ? ` about <b>${escapeHtml(serviceCategory)}</b>` : ""
+              } and our team will get back to you shortly — usually within 24 hours.</p>
+              ${
+                message
+                  ? `<p style="background:#f5f5f5;padding:12px;border-radius:8px;"><b>Your message:</b><br/>${escapeHtml(
+                      message
+                    )}</p>`
+                  : ""
+              }
+              ${
+                whatsapp
+                  ? `<p>Need a faster response? Message us directly on <a href="https://wa.me/${whatsapp}" style="color:#25D366;">WhatsApp</a>.</p>`
+                  : ""
+              }
+              <p style="margin-top:24px;color:#888;font-size:12px;">— U Graphics Team</p>
+            </div>
+          `,
+        });
+      } catch (customerEmailError) {
+        console.error("Thank-you email failed:", customerEmailError);
+      }
     }
 
     return NextResponse.json({ enquiry }, { status: 201 });

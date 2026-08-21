@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ImageUploadField from "@/components/admin/ImageUploadField";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
 const empty = {
   title: "",
@@ -20,6 +21,8 @@ export default function ServiceManager() {
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState(null);
   const [status, setStatus] = useState("");
+  const [serviceToRemove, setServiceToRemove] = useState(null);
+  const [removing, setRemoving] = useState(false);
 
   const load = () =>
     Promise.all([
@@ -73,18 +76,21 @@ export default function ServiceManager() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const remove = async (service) => {
-    if (!service._id) return;
-    const action = service.isCatalogDefault ? "Reset this service to its catalogue default" : `Delete ${service.title}`;
-    if (!window.confirm(`${action}?`)) return;
-    const response = await fetch(`/api/services/${service._id}`, {
-      method: "DELETE",
-    });
-    if (response.ok) {
+  const remove = async () => {
+    if (!serviceToRemove?._id) return;
+    setRemoving(true);
+    try {
+      const response = await fetch(`/api/services/${serviceToRemove._id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error();
       setStatus("Deleted.");
+      setServiceToRemove(null);
       load();
-    } else {
+    } catch {
       setStatus("Unable to delete service.");
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -221,7 +227,7 @@ export default function ServiceManager() {
           </thead>
           <tbody>
             {services.map((service) => (
-              <tr key={service._id} className="border-t border-ink/5">
+              <tr key={service._id || service.slug} className="border-t border-ink/5">
                 <td className="p-4 font-medium">{service.title}</td>
                 <td className="p-4">{service.catalogGroup}</td>
                 <td className="p-4 text-ink/60">{service.slug}</td>
@@ -232,7 +238,7 @@ export default function ServiceManager() {
                   >
                     {service._id ? "Edit" : "Customize"}
                   </button>
-                  {service._id && <button className="text-danger" onClick={() => remove(service)}>
+                  {service._id && <button className="text-danger" onClick={() => setServiceToRemove(service)}>
                     {service.isCatalogDefault ? "Reset" : "Delete"}
                   </button>}
                 </td>
@@ -241,6 +247,17 @@ export default function ServiceManager() {
           </tbody>
         </table>
       </div>
+      <ConfirmDialog
+        open={Boolean(serviceToRemove)}
+        loading={removing}
+        title={serviceToRemove?.isCatalogDefault ? "Reset service changes?" : "Delete service?"}
+        description={serviceToRemove?.isCatalogDefault
+          ? `Reset "${serviceToRemove?.title}" to its original catalogue content? Your admin changes will be removed.`
+          : `Delete "${serviceToRemove?.title}"? This cannot be undone.`}
+        confirmLabel={serviceToRemove?.isCatalogDefault ? "Reset to default" : "Delete permanently"}
+        onConfirm={remove}
+        onClose={() => setServiceToRemove(null)}
+      />
     </div>
   );
 }

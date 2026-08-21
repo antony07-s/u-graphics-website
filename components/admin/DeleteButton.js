@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
+import ConfirmDialog from "@/components/admin/ConfirmDialog";
 
 /**
  * apiPath: full API path to DELETE, e.g. `/api/portfolio/${id}`
@@ -11,33 +12,43 @@ import { Trash2, Loader2 } from "lucide-react";
 export default function DeleteButton({ apiPath, itemLabel = "this item" }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState("");
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(
-      `Delete "${itemLabel}"? This cannot be undone.`
-    );
-    if (!confirmed) return;
-
     setLoading(true);
+    setError("");
     try {
       const res = await fetch(apiPath, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
+      setOpen(false);
       router.refresh();
-    } catch (err) {
-      alert("Failed to delete. Please try again.");
+    } catch {
+      setError("Unable to delete this item. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
     <button
-      onClick={handleDelete}
+      onClick={() => { setError(""); setOpen(true); }}
       disabled={loading}
       className="flex items-center gap-1.5 rounded-card px-3 py-1.5 text-sm font-medium text-danger transition hover:bg-red-50 disabled:opacity-50"
     >
       {loading ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
       Delete
     </button>
+    <ConfirmDialog
+      open={open}
+      loading={loading}
+      title="Delete item?"
+      description={error || `Delete "${itemLabel}"? This cannot be undone.`}
+      confirmLabel="Delete permanently"
+      onConfirm={handleDelete}
+      onClose={() => setOpen(false)}
+    />
+    </>
   );
 }
