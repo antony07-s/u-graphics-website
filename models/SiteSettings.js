@@ -12,6 +12,11 @@ const SiteSettingsSchema = new mongoose.Schema({
   malaysiaAddress: { type: String, required: true },
   malaysiaPhone: { type: String, required: true },
   whatsapp: { type: String, required: true },
+  homepageStats: [{
+    label: { type: String, required: true, maxlength: 80 },
+    value: { type: Number, required: true, min: 0 },
+    suffix: { type: String, default: "+", maxlength: 10 },
+  }],
   socialLinks: {
     instagram: { type: String },
     telegram: { type: String },

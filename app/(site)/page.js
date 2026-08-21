@@ -4,6 +4,10 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
 import StatsCounter from "@/components/ui/StatsCounter";
 import HeroSlider from "@/components/home/HeroSlider";
+import { getSiteSettings } from "@/lib/siteSettings";
+import { siteConfig } from "@/lib/siteConfig";
+
+export const dynamic = "force-dynamic";
 
 // TEMPORARY placeholder photos — replace with your own signage/web project
 // photos once available (via Cloudinary once the admin panel is built, or
@@ -17,7 +21,9 @@ const heroSlides = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const settings = await getSiteSettings();
+  const stats = settings.homepageStats?.length ? settings.homepageStats : siteConfig.homepageStats;
   return (
     <>
       {/* Hero */}
@@ -64,12 +70,7 @@ export default function HomePage() {
       <section className="section section-alt">
         <div className="container-page">
           <StatsCounter
-            stats={[
-              { label: "Projects Completed", value: 500, suffix: "+" },
-              { label: "Years of Experience", value: 10, suffix: "+" },
-              { label: "Happy Clients", value: 300, suffix: "+" },
-              { label: "Cities Served", value: 15, suffix: "+" },
-            ]}
+            stats={stats}
           />
         </div>
       </section>
