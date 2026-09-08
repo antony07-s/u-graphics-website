@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
 import { getSiteSettings } from "@/lib/siteSettings";
@@ -8,6 +8,37 @@ export default async function Footer() {
   const settings = await getSiteSettings();
   return (
     <footer className="bg-primary-dark bg-[#082C6B] text-white">
+      {/* Categories mega-list - linked to real product pages using the
+          actual catalog slugs from lib/catalog-data.js, not invented ones. */}
+      <div className="border-b border-white/10">
+        <div className="container-page grid grid-cols-2 gap-8 py-12 sm:grid-cols-3">
+          <div>
+            <h4 className="font-heading font-semibold">Business Cards & Stationery</h4>
+            <ul className="mt-3 space-y-2 text-sm text-white/70">
+              <li><Link href="/digital-printing/business-card" className="hover:text-accent">Business Cards</Link></li>
+              <li><Link href="/digital-printing/letterhead" className="hover:text-accent">Letterhead</Link></li>
+              <li><Link href="/digital-printing/envelope" className="hover:text-accent">Envelope</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-heading font-semibold">Labels & Stickers</h4>
+            <ul className="mt-3 space-y-2 text-sm text-white/70">
+              <li><Link href="/digital-printing/sticker" className="hover:text-accent">Stickers</Link></li>
+              <li><Link href="/digital-printing/car-sticker" className="hover:text-accent">Car Stickers</Link></li>
+              <li><Link href="/digital-printing/notepad" className="hover:text-accent">Notepad</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-heading font-semibold">Branding & Marketing</h4>
+            <ul className="mt-3 space-y-2 text-sm text-white/70">
+              <li><Link href="/digital-printing/brochure" className="hover:text-accent">Brochures</Link></li>
+              <li><Link href="/digital-printing/flyers" className="hover:text-accent">Flyers</Link></li>
+              <li><Link href="/digital-printing/certificate-printing" className="hover:text-accent">Certificates</Link></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div className="container-page grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <div className="flex items-center gap-1 font-heading text-xl font-bold">
@@ -15,7 +46,7 @@ export default async function Footer() {
             <span className="text-accent">GRAPHICS</span>
           </div>
           <p className="mt-3 text-sm text-white/70">
-            Signboards, advertising & web design — helping businesses across
+            Signboards, advertising & web design - helping businesses across
             India build a stronger visual presence, online and offline.
           </p>
           <a href={`https://wa.me/${settings.whatsapp || siteConfig.whatsapp}`} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white hover:text-accent"><MessageCircle size={17} /> WhatsApp U Graphics</a>
@@ -62,7 +93,7 @@ export default async function Footer() {
 
       <div className="border-t border-white/10 py-5">
         <div className="container-page flex flex-col items-center justify-between gap-2 text-xs text-white/60 sm:flex-row">
-          <p>© {new Date().getFullYear()} U Graphics. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} U Graphics. All rights reserved.</p>
           <Link href="/contact" className="hover:text-accent">Contact U Graphics</Link>
         </div>
       </div>

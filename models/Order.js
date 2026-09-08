@@ -1,0 +1,8 @@
+import mongoose from "mongoose";
+const OrderItemSchema = new mongoose.Schema({ product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true }, name: { type: String, required: true }, image: String, quantity: { type: Number, required: true, min: 1 }, variants: [{ name: String, value: String }], price: { type: Number, required: true, min: 0 }, subtotal: { type: Number, required: true, min: 0 } }, { _id: false });
+const AddressSchema = new mongoose.Schema({ address: String, city: String, state: String, postalCode: String, country: String }, { _id: false });
+const OrderSchema = new mongoose.Schema({ customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true, index: true }, orderNumber: { type: String, required: true, unique: true, index: true }, customerInformation: { name: String, email: String, phone: String }, shippingAddress: { type: AddressSchema, required: true }, items: { type: [OrderItemSchema], required: true }, subtotal: { type: Number, required: true, min: 0 }, shippingCost: { type: Number, required: true, min: 0 }, total: { type: Number, required: true, min: 0 }, paymentStatus: { type: String, enum: ["pending", "paid", "failed", "refunded"], default: "pending", index: true }, orderStatus: { type: String, enum: ["placed", "processing", "shipped", "delivered", "cancelled"], default: "placed", index: true } }, { timestamps: true });
+OrderSchema.index({ customer: 1, createdAt: -1 });
+OrderSchema.index({ orderStatus: 1, paymentStatus: 1, createdAt: -1 });
+// Future Razorpay fields belong here; payment processing is intentionally not enabled yet.
+export default mongoose.models.Order || mongoose.model("Order", OrderSchema);

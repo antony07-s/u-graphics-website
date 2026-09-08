@@ -9,6 +9,14 @@ const CategorySchema = new mongoose.Schema(
       enum: ["signage", "web-design", "signboards", "digital-printing"],
       required: true,
     },
+    // Storefront catalogue placement. This is intentionally separate from the
+    // legacy `group` field used by existing service/admin functionality.
+    section: {
+      type: String,
+      enum: ["signboards", "digital-printing", "general"],
+      default: "general",
+      index: true,
+    },
     description: { type: String },
     icon: { type: String }, // lucide-react icon name or image URL
     image: { type: String },
@@ -16,6 +24,8 @@ const CategorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+CategorySchema.index({ section: 1, order: 1, name: 1 });
 
 export default mongoose.models.Category ||
   mongoose.model("Category", CategorySchema);

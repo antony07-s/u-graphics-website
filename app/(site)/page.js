@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import Button from "@/components/ui/Button";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Card from "@/components/ui/Card";
@@ -6,15 +6,24 @@ import StatsCounter from "@/components/ui/StatsCounter";
 import HeroSlider from "@/components/home/HeroSlider";
 import { getSiteSettings } from "@/lib/siteSettings";
 import { siteConfig } from "@/lib/siteConfig";
+import { connectDB } from "@/lib/mongodb";
+import Product from "@/models/Product";
+import Category from "@/models/Category";
+import ProductCard from "@/components/products/ProductCard";
+import CategoryShowcase from "@/components/home/CategoryShowcase";
+import WatchAndBuy from "@/components/home/WatchAndBuy";
+import TrustedByClients from "@/components/home/TrustedByClients";
+import ReviewsSection from "@/components/home/ReviewsSection";
+import OurStory from "@/components/home/OurStory";
 
 export const dynamic = "force-dynamic";
 
-// TEMPORARY placeholder photos — replace with your own signage/web project
+// TEMPORARY placeholder photos â€” replace with your own signage/web project
 // photos once available (via Cloudinary once the admin panel is built, or
 // by dropping images into /public/hero and updating the paths below).
 const heroSlides = [
   {
-    // Fully designed banner — no overlay text needed since the graphic
+    // Fully designed banner â€” no overlay text needed since the graphic
     // already has the headline, icons and branding built in.
     image: "/images/hero/heroslider1.jpeg",
     fit: "contain",
@@ -23,11 +32,18 @@ const heroSlides = [
 
 export default async function HomePage() {
   const settings = await getSiteSettings();
+  await connectDB();
+  const [latestProducts, categories] = await Promise.all([
+    Product.find({}).sort({ createdAt: -1 }).limit(8).lean(),
+    Category.find({ section: "signboards" }).sort({ order: 1, name: 1 }).limit(80).lean(),
+  ]);
   const stats = settings.homepageStats?.length ? settings.homepageStats : siteConfig.homepageStats;
   return (
     <>
       {/* Hero */}
       <HeroSlider />
+
+      <WatchAndBuy />
 
       {/* Services overview */}
       <section className="section">
@@ -74,6 +90,22 @@ export default async function HomePage() {
           />
         </div>
       </section>
+
+      <section className="section">
+        <div className="container-page">
+          <SectionHeading eyebrow="Shop U Graphics" title="Latest Products" subtitle="Choose a product, set your quantity and request your custom print or signage order online." />
+          {latestProducts.length ? <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">{latestProducts.map((product) => <ProductCard key={product._id.toString()} product={JSON.parse(JSON.stringify(product))} />)}</div> : <div className="mx-auto mt-8 max-w-2xl rounded-card border border-primary/10 bg-surface-muted p-6 text-center"><p className="font-heading text-lg font-semibold text-ink">Product pricing is being added</p><p className="mt-2 text-sm text-ink/65">Our catalogue needs real product images, price tiers, minimum quantities and stock before products can safely be sold online.</p><Link href="/signboards" className="btn-primary mt-5 text-sm">Explore Signboards</Link></div>}
+        </div>
+      </section>
+
+      {categories.length > 0 && <section className="section section-alt"><div className="container-page"><SectionHeading eyebrow="Explore" title="Browse Signage Categories" subtitle="Choose a category to explore custom options for your business." /><CategoryShowcase categories={JSON.parse(JSON.stringify(categories))} /></div></section>}
+
+      <TrustedByClients />
+      <ReviewsSection />
+      <OurStory />
     </>
   );
 }
+
+
+

@@ -1,0 +1,11 @@
+import { notFound } from "next/navigation";
+import { connectDB } from "@/lib/mongodb";
+import Product from "@/models/Product";
+import Category from "@/models/Category";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import ProductCard from "@/components/products/ProductCard";
+import ProductDetail from "@/components/products/ProductDetail";
+export const dynamic = "force-dynamic";
+export async function generateMetadata({ params }) { await connectDB(); const product = await Product.findOne({ slug: params.slug }).select("title shortDescription image"); if (!product) return { title: "Products" }; return { title: product.title, description: product.shortDescription || `Buy ${product.title} from U Graphics.`, alternates: { canonical: `/products/${params.slug}` }, openGraph: product.image ? { images: [{ url: product.image, alt: product.title }] } : undefined }; }
+export default async function ProductOrCategoryPage({ params }) { await connectDB(); const product = await Product.findOne({ slug: params.slug }).populate("category", "name slug").lean(); if (product) return <section className="section"><div className="container-page"><Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Products", href: "/products" }, { label: product.title }]} /><div className="mt-6"><ProductDetail product={JSON.parse(JSON.stringify(product))} /></div></div></section>;
+const category = await Category.findOne({ slug: params.slug }).lean(); if (!category) notFound(); const products = await Product.find({ category: category._id }).sort({ createdAt: -1 }).limit(40).lean(); return <section className="section"><div className="container-page"><Breadcrumb items={[{ label: "Home", href: "/" }, { label: "Products", href: "/products" }, { label: category.name }]} /><h1 className="mt-5 font-heading text-3xl font-bold text-ink">{category.name}</h1>{category.description && <p className="mt-2 max-w-2xl text-ink/65">{category.description}</p>}<div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">{products.map((item) => <ProductCard key={item._id.toString()} product={JSON.parse(JSON.stringify(item))} />)}</div>{!products.length && <p className="mt-8 text-ink/60">No products in this category yet.</p>}</div></section>; }

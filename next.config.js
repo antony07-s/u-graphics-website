@@ -31,6 +31,7 @@ const nextConfig = {
       { protocol: "https", hostname: "i.etsystatic.com" },
       { protocol: "https", hostname: "www.haichenled.com" },
       { protocol: "https", hostname: "a.storyblok.com" },
+      { protocol: "https", hostname: "placehold.co" },
     ],
   },
 };
