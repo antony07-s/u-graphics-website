@@ -1,8 +1,9 @@
 ﻿"use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+// import { useState } from "react";
+import { useState, Suspense } from "react";
 
-export default function AccountPage() {
+function AccountForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [register, setRegister] = useState(false);
@@ -145,12 +146,20 @@ export default function AccountPage() {
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
             )}
 
-            <button disabled={loading} className="btn-primary w-full disabled:opacity-60">
+                       <button disabled={loading} className="btn-primary w-full disabled:opacity-60">
               {loading ? "Please wait…" : register ? "Create account" : "Login"}
             </button>
           </form>
         </div>
       </div>
     </section>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={<div className="section"><div className="container-page text-ink/40">Loading…</div></div>}>
+      <AccountForm />
+    </Suspense>
   );
 }
