@@ -1,19 +1,9 @@
-/** @type {import('next').NextConfig} */
+﻿/** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "plus.unsplash.com",
-      },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "plus.unsplash.com" },
       { protocol: "https", hostname: "loremflickr.com" },
       { protocol: "https", hostname: "millenniumsignage.co.za" },
@@ -32,6 +22,7 @@ const nextConfig = {
       { protocol: "https", hostname: "www.haichenled.com" },
       { protocol: "https", hostname: "a.storyblok.com" },
       { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "images.pexels.com" },
     ],
   },
 };

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -6,16 +6,22 @@ import { signOut, useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   FolderKanban,
+  Package,
   Layers,
   Newspaper,
   Mail,
   Settings,
+  ClipboardList,
+  Star,
   LogOut,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Portfolio", href: "/admin/portfolio", icon: FolderKanban },
+  { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Orders", href: "/admin/orders", icon: ClipboardList },
+  { label: "Reviews", href: "/admin/reviews", icon: Star },
   { label: "Services", href: "/admin/services", icon: Layers },
   { label: "Blog", href: "/admin/blog", icon: Newspaper },
   { label: "Enquiries", href: "/admin/enquiries", icon: Mail },
@@ -34,7 +40,7 @@ export default function AdminShell({ children }) {
   return (
     <div className="flex min-h-screen bg-surface-muted">
       {/* Sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-black/5 bg-white sm:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-black/5 bg-white md:flex">
         <div className="flex h-16 items-center border-b border-black/5 px-6">
           <span className="font-heading text-lg font-bold text-primary">
             U Graphics
@@ -77,7 +83,7 @@ export default function AdminShell({ children }) {
 
       {/* Main content */}
       <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-black/5 bg-white px-6">
+        <header className="flex min-h-16 items-center justify-between gap-3 border-b border-black/5 bg-white px-4 sm:px-6">
           <p className="text-sm text-ink/60">
             Signed in as{" "}
             <span className="font-medium text-ink">
@@ -92,8 +98,11 @@ export default function AdminShell({ children }) {
             View Site ↗
           </Link>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <nav className="flex gap-2 overflow-x-auto border-b border-black/5 bg-white px-4 py-2 md:hidden">{navItems.map(({ label, href }) => <Link key={href} href={href} className={`shrink-0 rounded px-3 py-2 text-sm ${pathname?.startsWith(href) ? "bg-primary text-white" : "text-ink/65"}`}>{label}</Link>)}</nav>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );
 }
+
+

@@ -1,6 +1,7 @@
 ﻿import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import Category from "@/models/Category"; // required for .populate("category") to work
 import ProductCard from "@/components/products/ProductCard";
 
 export const metadata = { title: "Products", description: "Custom printing, signage and branding products from U Graphics." };
@@ -106,3 +107,4 @@ export default async function ProductsPage({ searchParams }) {
     </section>
   );
 }
+

@@ -42,8 +42,8 @@ export default function ImageUploadField({
 
       <div className="flex flex-wrap items-center gap-3">
         <CldUploadWidget
-          uploadPreset="ugraphics_uploads"
-          options={{ folder, sources: ["local", "camera", "url"] }}
+          signatureEndpoint="/api/admin/cloudinary-signature"
+          options={{ folder, sources: ["local", "camera", "url"], resourceType: "image", clientAllowedFormats: ["jpg", "jpeg", "png", "webp", "avif"], maxFileSize: 10_000_000, multiple: false }}
           onSuccess={(result) => {
             if (result?.info?.secure_url) {
               onChange(result.info.secure_url);

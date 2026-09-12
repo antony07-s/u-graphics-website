@@ -15,16 +15,12 @@ import WatchAndBuy from "@/components/home/WatchAndBuy";
 import TrustedByClients from "@/components/home/TrustedByClients";
 import ReviewsSection from "@/components/home/ReviewsSection";
 import OurStory from "@/components/home/OurStory";
+import { categoryImageFallback } from "@/lib/categoryImageFallbacks";
 
 export const dynamic = "force-dynamic";
 
-// TEMPORARY placeholder photos â€” replace with your own signage/web project
-// photos once available (via Cloudinary once the admin panel is built, or
-// by dropping images into /public/hero and updating the paths below).
 const heroSlides = [
   {
-    // Fully designed banner â€” no overlay text needed since the graphic
-    // already has the headline, icons and branding built in.
     image: "/images/hero/heroslider1.jpeg",
     fit: "contain",
   },
@@ -33,19 +29,23 @@ const heroSlides = [
 export default async function HomePage() {
   const settings = await getSiteSettings();
   await connectDB();
-  const [latestProducts, categories] = await Promise.all([
+  const [latestProducts, categoriesRaw] = await Promise.all([
     Product.find({}).sort({ createdAt: -1 }).limit(8).lean(),
     Category.find({ section: "signboards" }).sort({ order: 1, name: 1 }).limit(80).lean(),
   ]);
+
+  const categories = categoriesRaw.map((category, order) => ({
+    ...category,
+    image: category.image || categoryImageFallback(category.name, "signboards", order, category.slug),
+  }));
+
   const stats = settings.homepageStats?.length ? settings.homepageStats : siteConfig.homepageStats;
   return (
     <>
-      {/* Hero */}
       <HeroSlider />
 
       <WatchAndBuy />
 
-      {/* Services overview */}
       <section className="section">
         <div className="container-page">
           <SectionHeading
@@ -82,7 +82,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="section section-alt">
         <div className="container-page">
           <StatsCounter
@@ -94,7 +93,20 @@ export default async function HomePage() {
       <section className="section">
         <div className="container-page">
           <SectionHeading eyebrow="Shop U Graphics" title="Latest Products" subtitle="Choose a product, set your quantity and request your custom print or signage order online." />
-          {latestProducts.length ? <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">{latestProducts.map((product) => <ProductCard key={product._id.toString()} product={JSON.parse(JSON.stringify(product))} />)}</div> : <div className="mx-auto mt-8 max-w-2xl rounded-card border border-primary/10 bg-surface-muted p-6 text-center"><p className="font-heading text-lg font-semibold text-ink">Product pricing is being added</p><p className="mt-2 text-sm text-ink/65">Our catalogue needs real product images, price tiers, minimum quantities and stock before products can safely be sold online.</p><Link href="/signboards" className="btn-primary mt-5 text-sm">Explore Signboards</Link></div>}
+          {latestProducts.length ? (
+            <>
+              <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {latestProducts.map((product) => (
+                  <ProductCard key={product._id.toString()} product={JSON.parse(JSON.stringify(product))} />
+                ))}
+              </div>
+              <div className="mt-10 text-center">
+                <Link href="/products" className="btn-outline">
+                  View All Products
+                </Link>
+              </div>
+            </>
+          ) : <div className="mx-auto mt-8 max-w-2xl rounded-card border border-primary/10 bg-surface-muted p-6 text-center"><p className="font-heading text-lg font-semibold text-ink">Product pricing is being added</p><p className="mt-2 text-sm text-ink/65">Our catalogue needs real product images, price tiers, minimum quantities and stock before products can safely be sold online.</p><Link href="/signboards" className="btn-primary mt-5 text-sm">Explore Signboards</Link></div>}
         </div>
       </section>
 
@@ -106,6 +118,3 @@ export default async function HomePage() {
     </>
   );
 }
-
-
-
