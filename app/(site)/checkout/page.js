@@ -31,7 +31,6 @@ export default function CheckoutPage() {
       else setValues((v) => ({ ...v, name: customer.name, email: customer.email, phone: customer.phone || "" }));
     });
     fetch("/api/cart").then((r) => r.ok ? r.json() : null).then((data) => setCart(data?.cart || { items: [] }));
-    // Load saved addresses so the customer can pick one instead of retyping
     fetch("/api/customer/addresses").then((r) => r.ok ? r.json() : null).then((data) => setSavedAddresses(data?.addresses || []));
   }, [router]);
 
@@ -116,7 +115,9 @@ export default function CheckoutPage() {
             <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
               {fieldConfig.map((field) => (
                 <label key={field.key} className={field.span === 2 ? "sm:col-span-2" : ""}>
-                  <span className="mb-1 block text-sm font-medium text-ink">{field.label}</span>
+                  <span className="mb-1 block text-sm font-medium text-ink">
+                    {field.label} <span className="text-red-500">*</span>
+                  </span>
                   <input
                     required
                     value={values[field.key] || ""}
