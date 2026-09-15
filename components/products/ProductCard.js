@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/components/providers/ToastProvider";
 
 const money = (value) =>
   new Intl.NumberFormat("en-IN", {
@@ -16,11 +17,10 @@ export const productStartingPrice = (product) =>
 
 export default function ProductCard({ product }) {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const toast = useToast();
 
   const add = async () => {
     setLoading(true);
-    setMessage("");
     const response = await fetch("/api/cart", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -33,11 +33,11 @@ export default function ProductCard({ product }) {
     const data = await response.json();
     setLoading(false);
     if (!response.ok) {
-      setMessage(data.error || "Unable to add to cart.");
+      toast.error("Couldn’t add to cart", data.error || "Please try again.");
       return;
     }
     window.dispatchEvent(new CustomEvent("cart-changed", { detail: data.cart }));
-    setMessage("Added to cart");
+    toast.success("Added to cart", product.title);
   };
 
   return (
@@ -94,7 +94,6 @@ export default function ProductCard({ product }) {
         {(product.variants || []).length > 0 && (
           <p className="mt-2 text-xs text-ink/55">Choose options on product page</p>
         )}
-        {message && <p role="status" className="mt-2 text-xs text-ink/70">{message}</p>}
       </div>
     </article>
   );

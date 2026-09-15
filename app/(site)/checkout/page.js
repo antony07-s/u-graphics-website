@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MapPin, Check } from "lucide-react";
+import { useToast } from "@/components/providers/ToastProvider";
 
 const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value || 0);
 
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState(null);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     fetch("/api/customer/session").then((r) => r.json()).then(({ customer }) => {
@@ -53,6 +55,7 @@ export default function CheckoutPage() {
     event.preventDefault();
     setLoading(true);
     setStatus("");
+    const toastId = toast.loading("Placing your order", "Please wait while we verify stock and totals.");
     const response = await fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -63,8 +66,9 @@ export default function CheckoutPage() {
     });
     const data = await response.json();
     setLoading(false);
-    if (!response.ok) return setStatus(data.error || "Unable to place your order.");
+    if (!response.ok) { toast.update(toastId, "error", "Order not placed", data.error || "Please check your details and try again."); return setStatus(data.error || "Unable to place your order."); }
     window.dispatchEvent(new Event("cart-changed"));
+    toast.update(toastId, "success", "Order placed successfully", `Order ${data.order.orderNumber} is confirmed.`);
     router.push(`/order-confirmation/${data.order.orderNumber}`);
   };
 
@@ -129,8 +133,6 @@ export default function CheckoutPage() {
                   />
                 </label>
               ))}
-
-              {status && <p className="sm:col-span-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{status}</p>}
 
               <button disabled={loading} className="btn-primary sm:col-span-2 disabled:opacity-60">
                 {loading ? "Placing order..." : "Place order"}

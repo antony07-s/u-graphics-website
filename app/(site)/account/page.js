@@ -1,8 +1,9 @@
 ﻿"use client";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, User, Phone, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import GoogleSignInButton from "@/components/account/GoogleSignInButton";
+import { useToast } from "@/components/providers/ToastProvider";
 
 function Field({ label, icon: Icon, ...props }) {
   return (
@@ -61,6 +62,8 @@ function AccountForm() {
   const [values, setValues] = useState({ name: "", phone: "", email: "", password: "", code: "", newPassword: "" });
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendSeconds, setResendSeconds] = useState(0);
+  const toast = useToast();
   const update = (key) => (event) => setValues({ ...values, [key]: event.target.value });
   const destination = params.get("next")?.startsWith("/") ? params.get("next") : "/";
 
@@ -76,7 +79,14 @@ function AccountForm() {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Unable to send code.");
+    setResendSeconds(60);
   };
+
+  useEffect(() => {
+    if (!resendSeconds) return undefined;
+    const timer = window.setTimeout(() => setResendSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendSeconds]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -91,6 +101,8 @@ function AccountForm() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error);
+        toast.success("Signed in successfully", `Welcome back, ${data.customer.name}.`);
+        if (data.otherSession) toast.info("Account active on another device", `${data.otherSession.browser} • ${data.otherSession.platform} • Active recently`);
         window.dispatchEvent(new CustomEvent("customer-changed"));
         router.replace(destination);
         return;
@@ -99,6 +111,7 @@ function AccountForm() {
         await requestOtp(mode === "register" ? "register" : "reset");
         setStep("verify");
         setStatus("We sent a six-digit verification code to your email.");
+        toast.info(mode === "register" ? "Verification code sent" : "Reset code sent", "Check your email. The code expires in 10 minutes.");
         return;
       }
       const response = await fetch("/api/customer/otp/verify", {
@@ -113,10 +126,13 @@ function AccountForm() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error);
+      toast.success(mode === "register" ? "Account verified" : "Password reset", mode === "register" ? "Your account is ready to use." : "Your new password has been saved.");
+      if (data.otherSession) toast.info("Account active on another device", `${data.otherSession.browser} • ${data.otherSession.platform} • Active recently`);
       window.dispatchEvent(new CustomEvent("customer-changed"));
       router.replace(destination);
     } catch (error) {
       setStatus(error.message || "Unable to continue.");
+      toast.error("Unable to continue", error.message || "Please check your details and try again.");
     } finally {
       setLoading(false);
     }
@@ -126,6 +142,7 @@ function AccountForm() {
     setMode(next);
     setStep("form");
     setStatus("");
+    setResendSeconds(0);
   };
 
   const title =
@@ -237,12 +254,6 @@ function AccountForm() {
               </>
             )}
 
-            {status && (
-              <p role="status" className="rounded-lg bg-primary/5 px-3 py-2 text-sm text-primary">
-                {status}
-              </p>
-            )}
-
             <button disabled={loading} className="btn-primary w-full disabled:opacity-60">
               {loading
                 ? "Please wait..."
@@ -264,7 +275,9 @@ function AccountForm() {
                 <span className="h-px flex-1 bg-ink/10" />
               </div>
               <GoogleSignInButton
-                onSuccess={() => {
+                onSuccess={(data) => {
+                  toast.success("Signed in successfully", `Welcome, ${data.customer.name}.`);
+                  if (data.otherSession) toast.info("Account active on another device", `${data.otherSession.browser} • ${data.otherSession.platform} • Active recently`);
                   window.dispatchEvent(new CustomEvent("customer-changed"));
                   router.replace(destination);
                 }}
@@ -286,15 +299,23 @@ function AccountForm() {
           {step === "verify" && (
             <button
               type="button"
-              disabled={loading}
-              onClick={() =>
-                requestOtp(mode === "register" ? "register" : "reset")
-                  .then(() => setStatus("A new code has been sent."))
-                  .catch((error) => setStatus(error.message))
-              }
-              className="mt-4 w-full text-center text-sm font-medium text-primary hover:underline"
+              disabled={loading || resendSeconds > 0}
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  await requestOtp(mode === "register" ? "register" : "reset");
+                  setStatus("A new code has been sent.");
+                  toast.success("New code sent", "Check your email for the latest verification code.");
+                } catch (error) {
+                  setStatus(error.message || "Unable to send a new code.");
+                  toast.error("Code not sent", error.message || "Please try again shortly.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="mt-4 w-full text-center text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-ink/40"
             >
-              Resend code
+              {resendSeconds ? `Resend code in ${resendSeconds}s` : "Resend code"}
             </button>
           )}
 

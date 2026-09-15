@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, Phone, ChevronDown, Search, ShoppingCart, User } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
 import { useSiteSettings } from "@/components/providers/useSiteSettings";
+import { useToast } from "@/components/providers/ToastProvider";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -21,6 +22,7 @@ const catalogueMenus = [
 ];
 
 export default function Header() {
+  const toast = useToast();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState("");
@@ -76,10 +78,12 @@ export default function Header() {
   }, []);
 
   const logout = async () => {
-    await fetch("/api/customer/session", { method: "DELETE" });
+    const response = await fetch("/api/customer/session", { method: "DELETE" });
+    if (!response.ok) return toast.error("Couldn’t sign out", "Please try again.");
     setCustomer(null);
     setAccountMenuOpen(false);
-    window.location.href = "/";
+    toast.success("Signed out successfully");
+    window.setTimeout(() => { window.location.href = "/"; }, 450);
   };
 
   const submitSearch = (event) => { event.preventDefault(); const term = search.trim(); if (term) window.location.href = `/products?q=${encodeURIComponent(term)}`; };
@@ -103,7 +107,7 @@ export default function Header() {
             <button type="button" onClick={() => setDesktopMenu(desktopMenu === "All Categories" ? "" : "All Categories")} className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-ink transition hover:text-primary" aria-expanded={desktopMenu === "All Categories"}>
               All Categories <ChevronDown size={14} />
             </button>
-            {desktopMenu === "All Categories" && <div className="absolute left-0 top-full z-50 w-[min(48rem,calc(100vw-2rem))] pt-3"><div className="overflow-hidden rounded-card border border-ink/10 bg-white shadow-card"><div className="bg-primary px-5 py-4 text-white"><p className="font-heading text-base font-semibold">All Categories</p><p className="mt-1 text-xs text-white/75">Browse the U Graphics catalogue</p></div><div className="grid max-h-[55vh] grid-cols-3 gap-x-2 gap-y-1 overflow-y-auto p-4">{categories.map((item) => <Link key={item.slug} href={`/products/${item.slug}`} className="rounded px-3 py-2 text-xs leading-4 text-ink/75 hover:bg-surface-muted hover:text-primary" onClick={() => setDesktopMenu("")}>{item.name}</Link>)}</div></div></div>}
+            {desktopMenu === "All Categories" && <div className="absolute left-0 top-full z-50 w-[min(48rem,calc(100vw-2rem))] pt-3"><div className="overflow-hidden rounded-card border border-ink/10 bg-white shadow-card"><div className="bg-primary px-5 py-4 text-white"><p className="font-heading text-base font-semibold">All Categories</p><p className="mt-1 text-xs text-white/75">Browse the U Graphics catalogue</p></div><div className="grid max-h-[55vh] grid-cols-3 gap-x-2 gap-y-1 overflow-y-auto p-4">{categories.map((item) => <Link key={item.slug} href={`/products?category=${encodeURIComponent(item.slug)}`} className="rounded px-3 py-2 text-xs leading-4 text-ink/75 hover:bg-surface-muted hover:text-primary" onClick={() => setDesktopMenu("")}>{item.name}</Link>)}</div></div></div>}
           </div>
           {catalogueMenus.map((menu) => { const items = categories.filter((category) => category.section === menu.section); return <div key={menu.href} className="relative" onMouseEnter={() => setDesktopMenu(menu.label)} onMouseLeave={() => setDesktopMenu("")} onFocus={() => setDesktopMenu(menu.label)}><Link href={menu.href} className="flex items-center gap-1 whitespace-nowrap font-body text-sm font-medium text-ink transition hover:text-primary" aria-expanded={desktopMenu === menu.label} aria-controls={`desktop-${menu.section}`}>{menu.label}<ChevronDown className={desktopMenu === menu.label ? "rotate-180" : ""} size={14} /></Link>{desktopMenu === menu.label && <div className="absolute left-1/2 top-full z-50 w-[min(48rem,calc(100vw-2rem))] -translate-x-1/2 pt-3"><div id={`desktop-${menu.section}`} className="overflow-hidden rounded-card border border-ink/10 bg-white shadow-card"><div className="bg-primary px-5 py-4 text-white"><p className="font-heading text-base font-semibold">{menu.label}</p><p className="mt-1 text-xs text-white/75">{menu.description}</p></div><div className="grid max-h-[55vh] grid-cols-3 gap-x-2 gap-y-1 overflow-y-auto p-4">{items.map((item) => <Link key={item.slug} href={`/products/${item.slug}`} className="rounded px-3 py-2 text-xs leading-4 text-ink/75 transition hover:bg-surface-muted hover:text-primary" onClick={() => setDesktopMenu("")}>{item.name}</Link>)}</div><Link href={menu.href} className="block border-t border-ink/10 px-5 py-3 text-sm font-semibold text-primary hover:bg-surface-muted" onClick={() => setDesktopMenu("")}>Explore all {menu.label}</Link></div></div>}</div>; })}
           {navLinks.slice(3).map((link) => <Link key={link.href} href={link.href} className="whitespace-nowrap text-sm font-medium text-ink transition hover:text-primary">{link.label}</Link>)}
@@ -211,9 +215,9 @@ export default function Header() {
               <button type="button" className="flex w-full items-center justify-between py-3 font-medium text-ink" aria-expanded={expandedMenu === "All Categories"} onClick={() => setExpandedMenu(expandedMenu === "All Categories" ? "" : "All Categories")}>
                 All Categories <ChevronDown className={expandedMenu === "All Categories" ? "rotate-180" : ""} size={18} />
               </button>
-              {expandedMenu === "All Categories" && <div className="mb-3 grid max-h-64 gap-1 overflow-y-auto border-l border-primary/20 pl-3">{categories.map((item) => <Link key={item.slug} href={`/products/${item.slug}`} className="py-2 text-sm leading-5 text-ink/75" onClick={closeMobileMenu}>{item.name}</Link>)}</div>}
+              {expandedMenu === "All Categories" && <div className="mb-3 grid max-h-64 gap-1 overflow-y-auto border-l border-primary/20 pl-3">{categories.map((item) => <Link key={item.slug} href={`/products?category=${encodeURIComponent(item.slug)}`} className="py-2 text-sm leading-5 text-ink/75" onClick={closeMobileMenu}>{item.name}</Link>)}</div>}
             </div>
-            {catalogueMenus.map((menu) => { const items = categories.filter((category) => category.section === menu.section); return <div key={menu.href} className="border-t border-ink/5"><button type="button" className="flex w-full items-center justify-between py-3 font-medium text-ink" aria-expanded={expandedMenu === menu.label} onClick={() => setExpandedMenu(expandedMenu === menu.label ? "" : menu.label)}><span>{menu.label}</span><ChevronDown className={expandedMenu === menu.label ? "rotate-180" : ""} size={18} /></button>{expandedMenu === menu.label && <div className="mb-3 grid gap-1 border-l border-primary/20 pl-3"><Link href={menu.href} className="py-2 text-sm font-medium text-primary" onClick={closeMobileMenu}>Explore all {menu.label}</Link>{items.map((item) => <Link key={item.slug} href={`/products/${item.slug}`} className="py-2 text-sm leading-5 text-ink/75" onClick={closeMobileMenu}>{item.name}</Link>)}</div>}</div>; })}
+            {catalogueMenus.map((menu) => { const items = categories.filter((category) => category.section === menu.section); return <div key={menu.href} className="border-t border-ink/5"><button type="button" className="flex w-full items-center justify-between py-3 font-medium text-ink" aria-expanded={expandedMenu === menu.label} onClick={() => setExpandedMenu(expandedMenu === menu.label ? "" : menu.label)}><span>{menu.label}</span><ChevronDown className={expandedMenu === menu.label ? "rotate-180" : ""} size={18} /></button>{expandedMenu === menu.label && <div className="mb-3 grid gap-1 border-l border-primary/20 pl-3"><Link href={menu.href} className="py-2 text-sm font-medium text-primary" onClick={closeMobileMenu}>Explore all {menu.label}</Link>{items.map((item) => <Link key={item.slug} href={`/products?category=${encodeURIComponent(item.slug)}`} className="py-2 text-sm leading-5 text-ink/75" onClick={closeMobileMenu}>{item.name}</Link>)}</div>}</div>; })}
             <Link href="/get-a-quote" className="btn-primary mt-2 w-full" onClick={closeMobileMenu}>
               Get a Quote
             </Link>

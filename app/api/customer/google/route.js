@@ -1,8 +1,10 @@
 ﻿import { NextResponse } from "next/server";
 import { OAuth2Client } from "google-auth-library";
+import crypto from "crypto";
 import { connectDB } from "@/lib/mongodb";
 import Customer from "@/models/Customer";
 import { makeCustomerToken, customerCookie } from "@/lib/customerAuth";
+import { activeOtherSession, recordCustomerSession } from "@/lib/customerSessions";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -50,9 +52,14 @@ export async function POST(request) {
       });
     }
 
-    const token = makeCustomerToken(customer.id);
+    const sessionId = crypto.randomBytes(24).toString("base64url");
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14);
+    const otherSession = await activeOtherSession(customer.id);
+    await recordCustomerSession(customer.id, sessionId, expiresAt, request.headers.get("user-agent"));
+    const token = makeCustomerToken(customer.id, sessionId);
     const response = NextResponse.json({
       customer: { id: customer.id, name: customer.name, email: customer.email },
+      otherSession,
     });
     response.cookies.set(customerCookie(token));
     return response;

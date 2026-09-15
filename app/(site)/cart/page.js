@@ -2,12 +2,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/providers/ToastProvider";
 
 const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value || 0);
 
 export default function CartPage() {
   const [cart, setCart] = useState(null);
-  const [error, setError] = useState("");
+  const toast = useToast();
 
   const load = async () => {
     const response = await fetch("/api/cart");
@@ -21,14 +22,16 @@ export default function CartPage() {
   const change = async (id, quantity) => {
     if (quantity < 1) return;
     const response = await fetch(`/api/cart/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity }) });
-    if (!response.ok) setError((await response.json()).error);
-    else { window.dispatchEvent(new Event("cart-changed")); load(); }
+    if (!response.ok) toast.error("Cart not updated", (await response.json()).error || "Please try again.");
+    else { window.dispatchEvent(new Event("cart-changed")); load(); toast.success("Cart updated", "Your quantity has been updated."); }
   };
 
   const remove = async (id) => {
-    await fetch(`/api/cart/${id}`, { method: "DELETE" });
+    const response = await fetch(`/api/cart/${id}`, { method: "DELETE" });
+    if (!response.ok) return toast.error("Couldn’t remove item", "Please try again.");
     window.dispatchEvent(new Event("cart-changed"));
     load();
+    toast.success("Removed from cart");
   };
 
   if (!cart) {
@@ -48,8 +51,6 @@ export default function CartPage() {
       <div className="container-page">
         <h1 className="font-heading text-3xl font-bold text-ink">Your Cart</h1>
         <p className="mt-1 text-sm text-ink/60">{cart.items.length} item{cart.items.length !== 1 ? "s" : ""} in your cart</p>
-
-        {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
         {cart.items.length ? (
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]">

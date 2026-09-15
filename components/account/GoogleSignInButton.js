@@ -18,7 +18,7 @@ export default function GoogleSignInButton({ onSuccess, onError }) {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Google sign-in failed.");
-        onSuccess?.(data.customer);
+        onSuccess?.(data);
       } catch (error) {
         onError?.(error.message || "Google sign-in failed.");
       }

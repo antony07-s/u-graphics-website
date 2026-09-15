@@ -15,6 +15,7 @@ export async function POST(request) {
   const customerId = readCustomerId();
   if (!customerId) return NextResponse.json({ error: "Please sign in before checkout." }, { status: 401 });
   const decremented = [];
+  let orderCreated = false;
   try {
     const input = schema.parse(await request.json()); await connectDB();
     const [customer, cart] = await Promise.all([Customer.findById(customerId), Cart.findOne({ customer: customerId })]);
@@ -24,12 +25,15 @@ export async function POST(request) {
     const stockNeeded = new Map(); for (const item of items) stockNeeded.set(item.product.toString(), (stockNeeded.get(item.product.toString()) || 0) + item.quantity);
     for (const [productId, quantity] of stockNeeded) { const result = await Product.updateOne({ _id: productId, stock: { $gte: quantity } }, { $inc: { stock: -quantity } }); if (!result.modifiedCount) throw new Error("INSUFFICIENT_STOCK"); decremented.push({ productId, quantity }); }
     const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0); const shippingCost = shippingFor(subtotal);
-    const order = await Order.create({ customer: customerId, orderNumber: `UG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`, customerInformation: { name: input.name, email: input.email.toLowerCase(), phone: input.phone }, shippingAddress: input.shippingAddress, items, subtotal, shippingCost, total: subtotal + shippingCost, paymentStatus: "pending", orderStatus: "placed" });
+    const order = await Order.create({ customer: customerId, orderNumber: `UG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`, customerInformation: { name: input.name, email: customer.email, phone: input.phone }, shippingAddress: input.shippingAddress, items, subtotal, shippingCost, total: subtotal + shippingCost, paymentStatus: "pending", orderStatus: "placed" });
+    orderCreated = true;
     // Future Razorpay capture belongs after the order has been created; payment is deliberately not processed in this phase.
     await Cart.updateOne({ _id: cart._id }, { $set: { items: [] } });
     return NextResponse.json({ order: { id: order.id, orderNumber: order.orderNumber, total: order.total, paymentStatus: order.paymentStatus, orderStatus: order.orderStatus } }, { status: 201 });
   } catch (error) {
-    if (decremented.length) await Promise.all(decremented.map(({ productId, quantity }) => Product.updateOne({ _id: productId }, { $inc: { stock: quantity } }))).catch(() => {});
+    // Once the order exists its stock reservation is authoritative.  Rolling
+    // it back after a later persistence error would oversell inventory.
+    if (!orderCreated && decremented.length) await Promise.all(decremented.map(({ productId, quantity }) => Product.updateOne({ _id: productId }, { $inc: { stock: quantity } }))).catch(() => {});
     return NextResponse.json({ error: error.message === "INSUFFICIENT_STOCK" ? "One or more items are out of stock." : "Please check your checkout details." }, { status: 400 });
   }
 }

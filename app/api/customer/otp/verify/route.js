@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { z } from "zod";
 import { connectDB } from "@/lib/mongodb";
 import Customer from "@/models/Customer";
 import EmailOtp from "@/models/EmailOtp";
 import { customerCookie, makeCustomerToken } from "@/lib/customerAuth";
+import { activeOtherSession, recordCustomerSession } from "@/lib/customerSessions";
 
 const schema = z.object({ purpose: z.enum(["register", "reset"]), email: z.string().trim().email().max(254), code: z.string().regex(/^\d{6}$/), password: z.string().min(8).max(128).optional() });
 export async function POST(request) {
@@ -22,8 +24,10 @@ export async function POST(request) {
       customer = await Customer.findOneAndUpdate({ email }, { $set: { passwordHash: await bcrypt.hash(input.password, 12), emailVerifiedAt: new Date() } }, { new: true }).select("name email");
     }
     await EmailOtp.deleteOne({ _id: otp._id });
-    const response = NextResponse.json({ customer: { id: customer.id, name: customer.name, email: customer.email } });
-    response.cookies.set(customerCookie(makeCustomerToken(customer.id)));
+    const sessionId = crypto.randomBytes(24).toString("base64url"); const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 14);
+    const otherSession = await activeOtherSession(customer.id); await recordCustomerSession(customer.id, sessionId, expiresAt, request.headers.get("user-agent"));
+    const response = NextResponse.json({ customer: { id: customer.id, name: customer.name, email: customer.email }, otherSession });
+    response.cookies.set(customerCookie(makeCustomerToken(customer.id, sessionId)));
     return response;
   } catch (error) { return NextResponse.json({ error: error?.code === 11000 ? "This email is already registered." : "Unable to verify this code." }, { status: 400 }); }
 }
